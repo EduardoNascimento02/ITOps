@@ -113,3 +113,7 @@ jobs:
           ssh -i ~/.ssh/id_rsa ubuntu@${{ env.EC2_PUBLIC_IP }} "docker pull eddydoc/apicontainer:${{ env.COMMIT_SHA }}"
 
       - name: Run Docker Container
+        if: always()
+        run: |
+          echo "Running Docker Container" | figlet -f small
+          ssh -i ~/.ssh/id_rsa ubuntu@${{ env.EC2_PUBLIC_IP }} "docker run -d -p 80:80 eddydox/apicontainer:${{ env.COMMIT_SHA }}"
