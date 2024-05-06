@@ -92,8 +92,7 @@ jobs:
           echo "deb [signed-by=/usr/share/keyrings/hashicorp.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list > /dev/null
           sudo apt-get update && sudo apt-get install terraform -y
 
-          # Initialize Terraform
-          terraform init -backend=false
+  
 
           echo 'provider "aws" {' > main.tf
           echo '  region = "us-west-2"' >> main.tf
@@ -121,6 +120,9 @@ jobs:
           echo '    Name = "ExampleInstance"' >> main.tf
           echo '  }' >> main.tf
           echo '}' >> main.tf
+
+          # Initialize Terraform
+          terraform init
           
           # Apply Terraform configuration
           terraform apply -auto-approve
