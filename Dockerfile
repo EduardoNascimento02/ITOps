@@ -53,7 +53,7 @@ RUN echo "aws_access_key_id = $(echo $AWS_ACCESS_KEY_ID)" >> aws/credentials
 RUN echo "aws_secret_access_key = $(echo $AWS_SECRET_ACCESS_KEY)" >> aws/credentials
 
 RUN apk update && apk add python3 py3-pip
-RUN python3 -m pip install -r requirements.txt
+RUN python3 -m pip install -r requirements.txt --break-system-packages
 
 EXPOSE 8080
 
