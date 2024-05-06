@@ -10,7 +10,8 @@ RUN unzip terraform_1.8.2_linux_amd64.zip
 RUN mv terraform /usr/local/bin/
 
 # Instalar o Python
-RUN apk add python3 py3-pip
+RUN apk add python3 
+RUN apk add py3-pip
 
 # Instalar awscli
 RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
