@@ -92,37 +92,10 @@ jobs:
           echo "deb [signed-by=/usr/share/keyrings/hashicorp.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list > /dev/null
           sudo apt-get update && sudo apt-get install terraform -y
 
-  
-
-          echo 'provider "aws" {' > main.tf
-          echo '  region = "us-west-2"' >> main.tf
-          echo '}' >> main.tf
-          echo 'resource "aws_instance" "example" {' >> main.tf
-          echo '  ami           = "ami-0c94855ba95c574c8"' >> main.tf
-          echo '  instance_type = "t2.micro"' >> main.tf
-          echo '  user_data     = <<EOF' >> main.tf
-          echo '    #!/bin/bash' >> main.tf
-          echo '    # Install Docker' >> main.tf
-          echo '    sudo apt-get update' >> main.tf
-          echo '    sudo apt-get install -y apt-transport-https ca-certificates curl software-properties-common' >> main.tf
-          echo '    curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -' >> main.tf
-          echo '    sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"' >> main.tf
-          echo '    sudo apt-get update' >> main.tf
-          echo '    sudo apt-get install -y docker-ce' >> main.tf
-          echo '    sudo usermod -aG docker $USER' >> main.tf
-          echo '    sudo systemctl enable docker' >> main.tf
-          echo '    sudo systemctl start docker' >> main.tf
-          echo '    # Pull and run the Docker image' >> main.tf
-          echo '    sudo docker pull eddydox/apicontainer:$COMMIT_SHA' >> main.tf
-          echo '    sudo docker run -d -p 8080:8080 eddydox/apicontainer:$COMMIT_SHA' >> main.tf
-          echo '  EOF' >> main.tf
-          echo '  tags = {' >> main.tf
-          echo '    Name = "ExampleInstance"' >> main.tf
-          echo '  }' >> main.tf
-          echo '}' >> main.tf
-
           # Initialize Terraform
           terraform init
+          
+          terraform plan -out=tfplan
           
           # Apply Terraform configuration
           terraform apply -auto-approve
