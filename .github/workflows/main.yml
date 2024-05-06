@@ -81,15 +81,6 @@ jobs:
           docker tag apicontainer:latest eddydox/apicontainer:$COMMIT_SHA
           docker push eddydox/apicontainer:$COMMIT_SHA
 
-      - name: Configure EC2 Instance
-        if: always()
-        run: |
-          echo "Configuring EC2 Instance" | figlet -f small
-          ssh-keygen -t rsa -N "" -f ~/.ssh/id_rsa
-          chmod 400 ~/.ssh/id_rsa
-          ssh-keyscan -H ${{ env.EC2_PUBLIC_IP }} >> ~/.ssh/known_hosts
-          ssh -i ~/.ssh/id_rsa ubuntu@${{ env.EC2_PUBLIC_IP }} "sudo apt-get update && sudo apt-get install docker.io -y && sudo usermod -aG docker ubuntu"
-
 
       - name: Create EC2 Instance
         if: always()
@@ -103,17 +94,34 @@ jobs:
           # Initialize Terraform
           terraform init
 
+          # Set Terraform variables
+          export TF_VAR_region="us-east-1"
+          export TF_VAR_instance_type="t2.micro"
+          export TF_VAR_ami="ami-0c94855ba95c71c99"
+
+          # Generate Terraform plan
+          terraform plan -out=tfplan
+
           # Apply Terraform configuration
           terraform apply -auto-approve
 
-      - name: Download Docker Image
-        if: always()
-        run: |
-          echo "Downloading Docker Image" | figlet -f small
-          ssh -i ~/.ssh/id_rsa ubuntu@${{ env.EC2_PUBLIC_IP }} "docker pull eddydoc/apicontainer:${{ env.COMMIT_SHA }}"
+          # Get instance IP address
+          INSTANCE_IP=$(terraform output -json instance_ip | jq -r '.[0]')
 
-      - name: Run Docker Container
-        if: always()
-        run: |
-          echo "Running Docker Container" | figlet -f small
-          ssh -i ~/.ssh/id_rsa ubuntu@${{ env.EC2_PUBLIC_IP }} "docker run -d -p 80:80 eddydox/apicontainer:${{ env.COMMIT_SHA }}"
+          # SSH into the instance and run bootstrap script
+          ssh -i /path/to/private_key.pem ec2-user@$INSTANCE_IP 'bash -s' <<EOF
+            # Install Docker
+            sudo apt-get update -y
+            sudo apt-get install docker.io -y
+
+            # Start Docker service
+            sudo systemctl start docker
+
+            # Download Docker image
+            docker pull eddydox/apicontainer:latest
+
+            # Run Docker container
+            docker run -d -p 8080:8080 eddydox/apicontainer:latest
+          EOF
+            # Apply Terraform configuration
+            terraform apply -auto-approve
