@@ -4,11 +4,46 @@ provider "aws" {
   shared_credentials_files = ["./aws/credentials"]
 
 }
+
+resource "aws_security_group" "instance_sg" {
+  name        = "instance_sg-5"
+  description = "Allow SSH and HTTP inbound traffic"
+  vpc_id      = "<vpc-id>"
+
+  ingress {
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    from_port   = 8080
+    to_port     = 8080
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+}
+
+variable "github_sha" {}
+
+output "public_ip" {
+  value = aws_instance.ec2_instance.public_ip
+}
+
 resource "aws_instance" "example" {
   ami           = "ami-0c94855ba95c574c8"
   instance_type = "t2.micro"
   key_name      = "Terraform"
   subnet_id = "subnet-06ca534a4ee042fc5"
+  vpc_security_group_ids = ["${aws_security_group.instance_sg.id}"]
   user_data     = <<EOF
     #!/bin/bash
     # Install Docker
