@@ -81,21 +81,14 @@ jobs:
           docker tag apicontainer:latest eddydox/apicontainer:$COMMIT_SHA
           docker push eddydox/apicontainer:$COMMIT_SHA
 
-
-
-      - name: Create EC2 Instance
+      - name: Deploy ECS using Terraform with the ./github/workflows/main.tf
         if: always()
         run: |
-          echo "Creating EC2 Instance" | figlet -f small
-          # Install Terraform
-          curl -fsSL https://apt.releases.hashicorp.com/gpg | sudo gpg --dearmor -o /usr/share/keyrings/hashicorp.gpg
-          echo "deb [signed-by=/usr/share/keyrings/hashicorp.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list > /dev/null
-          sudo apt-get update && sudo apt-get install terraform -y
-
-          # Initialize Terraform
+          echo "TERRAFORM" | figlet -f small
           terraform init
-          
-          terraform plan -out=tfplan
-          
-          # Apply Terraform configuration
+          terraform plan
           terraform apply -auto-approve
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: "us-east-1"
