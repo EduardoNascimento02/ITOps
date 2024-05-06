@@ -21,8 +21,7 @@ WORKDIR /work/
 COPY app/ .
 
 # Instalar os requisitos minimos (requirements.txt)
-RUN apk add python3 py3-pip && \
-    python3 -m pip install -r requirements.txt
+RUN python3 -m pip install -r requirements.txt
 
 # CORRETO:
 # ENV AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID} 
