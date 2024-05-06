@@ -81,7 +81,7 @@ jobs:
           docker tag apicontainer:latest eddydox/apicontainer:$COMMIT_SHA
           docker push eddydox/apicontainer:$COMMIT_SHA
 
-     - name: Configure EC2 Instance
+      - name: Configure EC2 Instance
         if: always()
         run: |
           echo "Configuring EC2 Instance" | figlet -f small
@@ -105,8 +105,6 @@ jobs:
 
           # Apply Terraform configuration
           terraform apply -auto-approve
-
- 
 
       - name: Download Docker Image
         if: always()
