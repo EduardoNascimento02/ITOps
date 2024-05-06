@@ -82,6 +82,7 @@ jobs:
           docker push eddydox/apicontainer:$COMMIT_SHA
 
 
+
       - name: Create EC2 Instance
         if: always()
         run: |
@@ -94,34 +95,32 @@ jobs:
           # Initialize Terraform
           terraform init
 
-          # Set Terraform variables
-          export TF_VAR_region="us-east-1"
-          export TF_VAR_instance_type="t2.micro"
-          export TF_VAR_ami="ami-0c94855ba95c71c99"
-
-          # Generate Terraform plan
-          terraform plan -out=tfplan
-
+          echo 'provider "aws" {' > main.tf
+          echo '  region = "us-west-2"' >> main.tf
+          echo '}' >> main.tf
+          echo 'resource "aws_instance" "example" {' >> main.tf
+          echo '  ami           = "ami-0c94855ba95c574c8"' >> main.tf
+          echo '  instance_type = "t2.micro"' >> main.tf
+          echo '  user_data     = <<EOF' >> main.tf
+          echo '    #!/bin/bash' >> main.tf
+          echo '    # Install Docker' >> main.tf
+          echo '    sudo apt-get update' >> main.tf
+          echo '    sudo apt-get install -y apt-transport-https ca-certificates curl software-properties-common' >> main.tf
+          echo '    curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -' >> main.tf
+          echo '    sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"' >> main.tf
+          echo '    sudo apt-get update' >> main.tf
+          echo '    sudo apt-get install -y docker-ce' >> main.tf
+          echo '    sudo usermod -aG docker $USER' >> main.tf
+          echo '    sudo systemctl enable docker' >> main.tf
+          echo '    sudo systemctl start docker' >> main.tf
+          echo '    # Pull and run the Docker image' >> main.tf
+          echo '    sudo docker pull eddydox/apicontainer:$COMMIT_SHA' >> main.tf
+          echo '    sudo docker run -d -p 8080:8080 eddydox/apicontainer:$COMMIT_SHA' >> main.tf
+          echo '  EOF' >> main.tf
+          echo '  tags = {' >> main.tf
+          echo '    Name = "ExampleInstance"' >> main.tf
+          echo '  }' >> main.tf
+          echo '}' >> main.tf
+          
           # Apply Terraform configuration
           terraform apply -auto-approve
-
-          # Get instance IP address
-          INSTANCE_IP=$(terraform output -json instance_ip | jq -r '.[0]')
-
-          # SSH into the instance and run bootstrap script
-          ssh -i /path/to/private_key.pem ec2-user@$INSTANCE_IP 'bash -s' <<EOF
-            # Install Docker
-            sudo apt-get update -y
-            sudo apt-get install docker.io -y
-
-            # Start Docker service
-            sudo systemctl start docker
-
-            # Download Docker image
-            docker pull eddydox/apicontainer:latest
-
-            # Run Docker container
-            docker run -d -p 8080:8080 eddydox/apicontainer:latest
-          EOF
-            # Apply Terraform configuration
-            terraform apply -auto-approve
