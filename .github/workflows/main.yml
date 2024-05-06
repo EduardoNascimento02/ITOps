@@ -81,13 +81,13 @@ jobs:
           docker tag apicontainer:latest eddydox/apicontainer:$COMMIT_SHA
           docker push eddydox/apicontainer:$COMMIT_SHA
 
-      - name: Deploy ECS using Terraform with the ./github/workflows/main.tf
+      - name: Deploy ECS using Terraform
         if: always()
         run: |
           echo "TERRAFORM" | figlet -f small
           terraform init
-          terraform plan
-          terraform apply -auto-approve
+          terraform plan -out "tfplan"
+          terraform apply auto-approve "tfplan"
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
