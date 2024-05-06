@@ -78,8 +78,17 @@ jobs:
           COMMIT_SHA=$(echo $GITHUB_SHA | cut -c 1-5)
           echo $COMMIT_SHA
 
-          docker tag apicontainer:latest <substituir_aqui>/apicontainer:$COMMIT_SHA
-          docker push <substituir_aqui>/apicontainer:$COMMIT_SHA
+          docker tag apicontainer:latest eddydox/apicontainer:$COMMIT_SHA
+          docker push eddydox/apicontainer:$COMMIT_SHA
+
+     - name: Configure EC2 Instance
+        if: always()
+        run: |
+          echo "Configuring EC2 Instance" | figlet -f small
+          ssh-keygen -t rsa -N "" -f ~/.ssh/id_rsa
+          chmod 400 ~/.ssh/id_rsa
+          ssh-keyscan -H ${{ env.EC2_PUBLIC_IP }} >> ~/.ssh/known_hosts
+          ssh -i ~/.ssh/id_rsa ubuntu@${{ env.EC2_PUBLIC_IP }} "sudo apt-get update && sudo apt-get install docker.io -y && sudo usermod -aG docker ubuntu"
 
 
       - name: Create EC2 Instance
@@ -97,14 +106,7 @@ jobs:
           # Apply Terraform configuration
           terraform apply -auto-approve
 
-      - name: Configure EC2 Instance
-        if: always()
-        run: |
-          echo "Configuring EC2 Instance" | figlet -f small
-          ssh-keygen -t rsa -N "" -f ~/.ssh/id_rsa
-          chmod 400 ~/.ssh/id_rsa
-          ssh-keyscan -H ${{ env.EC2_PUBLIC_IP }} >> ~/.ssh/known_hosts
-          ssh -i ~/.ssh/id_rsa ubuntu@${{ env.EC2_PUBLIC_IP }} "sudo apt-get update && sudo apt-get install docker.io -y && sudo usermod -aG docker ubuntu"
+ 
 
       - name: Download Docker Image
         if: always()
