@@ -1,9 +1,14 @@
 provider "aws" {
   region = "us-east-1"
+  shared_config_files = ["./aws/config"]
+  shared_credentials_files = ["./aws/credentials"]
+
 }
 resource "aws_instance" "example" {
   ami           = "ami-0c94855ba95c574c8"
   instance_type = "t2.micro"
+  key_name      = "Terraform"
+  subnet_id = "subnet-06ca534a4ee042fc5"
   user_data     = <<EOF
     #!/bin/bash
     # Install Docker
